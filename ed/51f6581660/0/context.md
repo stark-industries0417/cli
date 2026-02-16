@@ -80,3 +80,7 @@ we broke tests
 
 why is it not failing locally? is this a randomisation thing?
 
+### Prompt 12
+
+but let's stop and have a look at what's in play before we push anything
+
