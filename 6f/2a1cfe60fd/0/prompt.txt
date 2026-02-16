@@ -709,3 +709,7 @@ ok, 2 points:
 ---
 
 yes, commit and push
+
+---
+
+also update the review comment
