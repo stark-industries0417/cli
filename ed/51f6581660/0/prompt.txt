@@ -649,15 +649,3 @@ After all threads addressed, ask if ready to mark PR ready for review.
 | 404 on reply after rebase | Comment IDs change after force-push/rebase. Re-fetch comments before replying |
 
 ARGUMENTS: 342
-
----
-
-we broke tests
-
----
-
-why is it not failing locally? is this a randomisation thing?
-
----
-
-but let's stop and have a look at what's in play before we push anything

@@ -72,15 +72,3 @@ Technical mechanics for GitHub PR review workflows via `gh` CLI. Covers fetching
 ### Fine-Grained PAT
 ...
 
-### Prompt 10
-
-we broke tests
-
-### Prompt 11
-
-why is it not failing locally? is this a randomisation thing?
-
-### Prompt 12
-
-but let's stop and have a look at what's in play before we push anything
-
