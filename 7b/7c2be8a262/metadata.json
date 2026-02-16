@@ -310,6 +310,13 @@
       "context": "/7b/7c2be8a262/41/context.md",
       "content_hash": "/7b/7c2be8a262/41/content_hash.txt",
       "prompt": "/7b/7c2be8a262/41/prompt.txt"
+    },
+    {
+      "metadata": "/7b/7c2be8a262/42/metadata.json",
+      "transcript": "/7b/7c2be8a262/42/full.jsonl",
+      "context": "/7b/7c2be8a262/42/context.md",
+      "content_hash": "/7b/7c2be8a262/42/content_hash.txt",
+      "prompt": "/7b/7c2be8a262/42/prompt.txt"
     }
   ],
   "token_usage": {
