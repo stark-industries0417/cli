@@ -303,6 +303,13 @@
       "context": "/7b/7c2be8a262/40/context.md",
       "content_hash": "/7b/7c2be8a262/40/content_hash.txt",
       "prompt": "/7b/7c2be8a262/40/prompt.txt"
+    },
+    {
+      "metadata": "/7b/7c2be8a262/41/metadata.json",
+      "transcript": "/7b/7c2be8a262/41/full.jsonl",
+      "context": "/7b/7c2be8a262/41/context.md",
+      "content_hash": "/7b/7c2be8a262/41/content_hash.txt",
+      "prompt": "/7b/7c2be8a262/41/prompt.txt"
     }
   ],
   "token_usage": {
