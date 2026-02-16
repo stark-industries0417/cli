@@ -135,6 +135,13 @@
       "context": "",
       "content_hash": "/7b/7c2be8a262/16/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/7b/7c2be8a262/17/metadata.json",
+      "transcript": "/7b/7c2be8a262/17/full.jsonl",
+      "context": "",
+      "content_hash": "/7b/7c2be8a262/17/content_hash.txt",
+      "prompt": ""
     }
   ],
   "token_usage": {
