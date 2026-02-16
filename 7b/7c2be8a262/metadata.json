@@ -359,6 +359,13 @@
       "context": "/7b/7c2be8a262/48/context.md",
       "content_hash": "/7b/7c2be8a262/48/content_hash.txt",
       "prompt": "/7b/7c2be8a262/48/prompt.txt"
+    },
+    {
+      "metadata": "/7b/7c2be8a262/49/metadata.json",
+      "transcript": "/7b/7c2be8a262/49/full.jsonl",
+      "context": "/7b/7c2be8a262/49/context.md",
+      "content_hash": "/7b/7c2be8a262/49/content_hash.txt",
+      "prompt": "/7b/7c2be8a262/49/prompt.txt"
     }
   ],
   "token_usage": {
