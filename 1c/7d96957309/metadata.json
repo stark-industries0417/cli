@@ -1,0 +1,20 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "1c7d96957309",
+  "strategy": "manual-commit",
+  "branch": "soph/agent-refactor",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "cmd/entire/cli/lifecycle.go",
+    "cmd/entire/cli/lifecycle_test.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/1c/7d96957309/0/metadata.json",
+      "transcript": "/1c/7d96957309/0/full.jsonl",
+      "context": "",
+      "content_hash": "/1c/7d96957309/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
