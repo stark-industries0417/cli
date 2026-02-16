@@ -401,13 +401,20 @@
       "context": "/7b/7c2be8a262/54/context.md",
       "content_hash": "/7b/7c2be8a262/54/content_hash.txt",
       "prompt": "/7b/7c2be8a262/54/prompt.txt"
+    },
+    {
+      "metadata": "/7b/7c2be8a262/55/metadata.json",
+      "transcript": "/7b/7c2be8a262/55/full.jsonl",
+      "context": "/7b/7c2be8a262/55/context.md",
+      "content_hash": "/7b/7c2be8a262/55/content_hash.txt",
+      "prompt": "/7b/7c2be8a262/55/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 4489,
-    "cache_creation_tokens": 598870,
-    "cache_read_tokens": 22648353,
-    "output_tokens": 3104,
-    "api_call_count": 182
+    "input_tokens": 4511,
+    "cache_creation_tokens": 656042,
+    "cache_read_tokens": 24019162,
+    "output_tokens": 4643,
+    "api_call_count": 202
   }
 }
