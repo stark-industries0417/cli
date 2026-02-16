@@ -3,10 +3,11 @@
   "checkpoint_id": "e6e19f1ea693",
   "session_id": "46661ccd-b9b9-46be-8570-807185e3b9e4",
   "strategy": "manual-commit",
-  "created_at": "2026-02-16T17:58:57.193411Z",
+  "created_at": "2026-02-16T18:16:18.258731Z",
   "branch": "soph/agent-refactor",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
+    ".golangci.yaml",
     "CLAUDE.md",
     "GEMINI.md",
     "cmd/entire/cli/hooks_claudecode_posttodo.go",
@@ -28,24 +29,22 @@
     "cmd/entire/cli/strategy/strategy.go"
   ],
   "agent": "Claude Code",
-  "turn_id": "b4e79c1606b9",
-  "checkpoint_transcript_start": 784,
-  "transcript_lines_at_start": 784,
+  "turn_id": "2bf7c7094aa7",
   "token_usage": {
-    "input_tokens": 5141,
-    "cache_creation_tokens": 97099,
-    "cache_read_tokens": 5829116,
-    "output_tokens": 196,
-    "api_call_count": 63
+    "input_tokens": 9276,
+    "cache_creation_tokens": 367889,
+    "cache_read_tokens": 22065780,
+    "output_tokens": 581,
+    "api_call_count": 200
   },
   "initial_attribution": {
-    "calculated_at": "2026-02-16T17:58:56.03528Z",
-    "agent_lines": 163,
-    "human_added": 0,
+    "calculated_at": "2026-02-16T18:16:17.053198Z",
+    "agent_lines": 1,
+    "human_added": 1,
     "human_modified": 0,
     "human_removed": 0,
-    "total_committed": 163,
-    "agent_percentage": 100
+    "total_committed": 2,
+    "agent_percentage": 50
   },
   "transcript_path": ".claude/projects/-Users-soph-Work-entire-devenv-cli/46661ccd-b9b9-46be-8570-807185e3b9e4.jsonl"
 }

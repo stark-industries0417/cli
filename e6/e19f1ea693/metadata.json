@@ -3,8 +3,9 @@
   "checkpoint_id": "e6e19f1ea693",
   "strategy": "manual-commit",
   "branch": "soph/agent-refactor",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
+    ".golangci.yaml",
     "CLAUDE.md",
     "GEMINI.md",
     "cmd/entire/cli/hooks_claudecode_posttodo.go",
@@ -35,10 +36,10 @@
     }
   ],
   "token_usage": {
-    "input_tokens": 5141,
-    "cache_creation_tokens": 97099,
-    "cache_read_tokens": 5829116,
-    "output_tokens": 196,
-    "api_call_count": 63
+    "input_tokens": 9276,
+    "cache_creation_tokens": 367889,
+    "cache_read_tokens": 22065780,
+    "output_tokens": 581,
+    "api_call_count": 200
   }
 }

@@ -181,3 +181,19 @@ Summary:
 
 If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /Users/soph/.REDACTED.jsonl
 Please continue the conversation from where we left it off without asking the user any further questions. Continue with the last task that you were asked to work on.
+
+---
+
+can you do 4d now
+
+---
+
+can you do a short summary for a PR describing the refactor?
+
+---
+
+linting failed
+
+---
+
+can you silent them via lint rules
