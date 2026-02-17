@@ -51,3 +51,20 @@ lefthook-local.yml / .lefthook-local.yml (and .yaml, .json, .toml)
 
 why is HookManager and DetectHookManagers exported (capitalized)?
 
+### Prompt 8
+
+efthook is the most flexible in terms of config file naming. During installation, Lefthook looks for a configuration file using the pattern {.,}lefthook.{yml,yaml,json,toml} DeepWiki. So all valid main config files are:
+
+lefthook.yml
+lefthook.yaml
+lefthook.json
+lefthook.toml
+.lefthook.yml
+.lefthook.yaml
+.lefthook.json
+.lefthook.toml
+
+Plus the local override variants (same pattern with -local):
+
+lefthook-local.yml / .lefthook-local.yml (and .yaml, .json, .toml)
+
