@@ -47,3 +47,7 @@ Plus the local override variants (same pattern with -local):
 
 lefthook-local.yml / .lefthook-local.yml (and .yaml, .json, .toml)
 
+### Prompt 7
+
+why is HookManager and DetectHookManagers exported (capitalized)?
+
