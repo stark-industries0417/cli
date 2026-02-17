@@ -29,7 +29,7 @@ const (
 	wingmanInitialDelay = 10 * time.Second
 
 	// wingmanReviewModel is the Claude model used for reviews.
-	wingmanReviewModel = "sonnet"
+	wingmanReviewModel = "opus"
 
 	// wingmanGitTimeout is the timeout for git diff operations.
 	wingmanGitTimeout = 60 * time.Second
