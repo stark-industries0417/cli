@@ -3,8 +3,9 @@
   "checkpoint_id": "2939ce7ed7da",
   "strategy": "manual-commit",
   "branch": "feat/detect-hook-managers",
-  "checkpoints_count": 2,
+  "checkpoints_count": 3,
   "files_touched": [
+    "cmd/entire/cli/setup.go",
     "cmd/entire/cli/strategy/hook_managers.go",
     "cmd/entire/cli/strategy/hook_managers_test.go"
   ],
@@ -18,10 +19,10 @@
     }
   ],
   "token_usage": {
-    "input_tokens": 29,
-    "cache_creation_tokens": 10850,
-    "cache_read_tokens": 3258651,
-    "output_tokens": 1416,
-    "api_call_count": 27
+    "input_tokens": 18,
+    "cache_creation_tokens": 5771,
+    "cache_read_tokens": 1549488,
+    "output_tokens": 532,
+    "api_call_count": 12
   }
 }

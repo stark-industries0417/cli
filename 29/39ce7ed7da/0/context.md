@@ -72,3 +72,15 @@ lefthook-local.yml / .lefthook-local.yml (and .yaml, .json, .toml)
 
 let make HookManager and DetectHookManagers local (not captialised)
 
+### Prompt 10
+
+/reviewer
+
+### Prompt 11
+
+create a PR
+
+### Prompt 12
+
+initGitRepo duplicates the existing initHooksTestRepo helper in hooks_test.go (both run git init, t.Chdir, and clear the RepoRoot cache). Reusing the shared helper would reduce duplication and keep repo setup logic consistent across tests.
+
