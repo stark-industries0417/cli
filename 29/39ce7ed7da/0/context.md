@@ -68,3 +68,7 @@ Plus the local override variants (same pattern with -local):
 
 lefthook-local.yml / .lefthook-local.yml (and .yaml, .json, .toml)
 
+### Prompt 9
+
+let make HookManager and DetectHookManagers local (not captialised)
+

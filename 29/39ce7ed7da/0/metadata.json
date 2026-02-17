@@ -3,7 +3,7 @@
   "checkpoint_id": "2939ce7ed7da",
   "session_id": "781eb8d6-8104-41a8-9d75-778c1c92ce88",
   "strategy": "manual-commit",
-  "created_at": "2026-02-17T10:53:11.732381Z",
+  "created_at": "2026-02-17T11:00:13.929008Z",
   "branch": "feat/detect-hook-managers",
   "checkpoints_count": 2,
   "files_touched": [
@@ -11,24 +11,24 @@
     "cmd/entire/cli/strategy/hook_managers_test.go"
   ],
   "agent": "Claude Code",
-  "turn_id": "95d2e5853aee",
+  "turn_id": "be6964e16317",
   "transcript_identifier_at_start": "a6625f0d-ab7b-49a6-b4a4-13b121cecb48",
-  "checkpoint_transcript_start": 377,
-  "transcript_lines_at_start": 377,
+  "checkpoint_transcript_start": 470,
+  "transcript_lines_at_start": 470,
   "token_usage": {
-    "input_tokens": 11,
-    "cache_creation_tokens": 6876,
-    "cache_read_tokens": 1002007,
-    "output_tokens": 877,
-    "api_call_count": 9
+    "input_tokens": 29,
+    "cache_creation_tokens": 10850,
+    "cache_read_tokens": 3258651,
+    "output_tokens": 1416,
+    "api_call_count": 27
   },
   "initial_attribution": {
-    "calculated_at": "2026-02-17T10:53:11.437652Z",
+    "calculated_at": "2026-02-17T11:00:13.493346Z",
     "agent_lines": 0,
-    "human_added": 32,
-    "human_modified": 124,
-    "human_removed": 0,
-    "total_committed": 32,
+    "human_added": 0,
+    "human_modified": 36,
+    "human_removed": 12,
+    "total_committed": 0,
     "agent_percentage": 0
   },
   "transcript_path": ".claude/projects/-Users-robin-Developer-cli/781eb8d6-8104-41a8-9d75-778c1c92ce88.jsonl"
