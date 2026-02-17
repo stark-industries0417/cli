@@ -12,6 +12,7 @@ import (
 
 	"github.com/entireio/cli/cmd/entire/cli/agent"
 	"github.com/entireio/cli/cmd/entire/cli/agent/claudecode"
+	"github.com/entireio/cli/cmd/entire/cli/agent/cursor"
 	"github.com/entireio/cli/cmd/entire/cli/agent/geminicli"
 	"github.com/entireio/cli/cmd/entire/cli/logging"
 	"github.com/entireio/cli/cmd/entire/cli/paths"
@@ -75,6 +76,7 @@ func newAgentHooksCmd(agentName agent.AgentName, handler agent.HookHandler) *cob
 // "tool" for tool-related hooks (before-tool, after-tool),
 // "agent" for all other agent hooks.
 func getHookType(hookName string) string {
+	// Note: Claude Code and Cursor share the same hook names (pre-task, post-task, post-todo)
 	switch hookName {
 	case claudecode.HookNamePreTask, claudecode.HookNamePostTask, claudecode.HookNamePostTodo:
 		return "subagent"
@@ -139,12 +141,16 @@ func newAgentHookVerbCmdWithLogging(agentName agent.AgentName, hookName string) 
 				return fmt.Errorf("failed to parse hook event: %w", parseErr)
 			}
 
-			if event != nil {
+			switch {
+			case event != nil:
 				// Lifecycle event — use the generic dispatcher
 				hookErr = DispatchLifecycleEvent(ag, event)
-			} else if agentName == agent.AgentNameClaudeCode && hookName == claudecode.HookNamePostTodo {
-				// PostTodo is Claude-specific: creates incremental checkpoints during subagent execution
+			case agentName == agent.AgentNameClaudeCode && hookName == claudecode.HookNamePostTodo:
+				// PostTodo creates incremental checkpoints during subagent execution
 				hookErr = handleClaudeCodePostTodo()
+			case agentName == agent.AgentNameCursor && hookName == cursor.HookNamePostTodo:
+				// PostTodo creates incremental checkpoints during subagent execution
+				hookErr = handleCursorPostTodo()
 			}
 			// Other pass-through hooks (nil event, no special handling) are no-ops
 

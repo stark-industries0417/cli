@@ -617,13 +617,13 @@ func setupAgentHooksNonInteractive(w io.Writer, ag agent.Agent, strategyName str
 
 	if installedHooks == 0 {
 		msg := fmt.Sprintf("Hooks for %s already installed", ag.Description())
-		if agentName == agent.AgentNameGemini {
+		if agentName == agent.AgentNameGemini || agentName == agent.AgentNameCursor {
 			msg += " (Preview)"
 		}
 		fmt.Fprintf(w, "%s\n", msg)
 	} else {
 		msg := fmt.Sprintf("Installed %d hooks for %s", installedHooks, ag.Description())
-		if agentName == agent.AgentNameGemini {
+		if agentName == agent.AgentNameGemini || agentName == agent.AgentNameCursor {
 			msg += " (Preview)"
 		}
 		fmt.Fprintf(w, "%s\n", msg)
@@ -1104,6 +1104,19 @@ func removeAgentHooks(w io.Writer) error {
 				errs = append(errs, err)
 			} else if wasInstalled {
 				fmt.Fprintln(w, "  Removed Gemini CLI hooks")
+			}
+		}
+	}
+
+	// Remove Cursor hooks
+	cursorAgent, err := agent.Get(agent.AgentNameCursor)
+	if err == nil {
+		if hookAgent, ok := cursorAgent.(agent.HookSupport); ok {
+			wasInstalled := hookAgent.AreHooksInstalled()
+			if err := hookAgent.UninstallHooks(); err != nil {
+				errs = append(errs, err)
+			} else if wasInstalled {
+				fmt.Fprintln(w, "  Removed Cursor hooks")
 			}
 		}
 	}
