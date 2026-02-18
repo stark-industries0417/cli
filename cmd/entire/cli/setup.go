@@ -19,29 +19,11 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// Strategy display names for user-friendly selection
-const (
-	strategyDisplayManualCommit = "manual-commit"
-	strategyDisplayAutoCommit   = "auto-commit"
-)
-
 // Config path display strings
 const (
 	configDisplayProject = ".entire/settings.json"
 	configDisplayLocal   = ".entire/settings.local.json"
 )
-
-// strategyDisplayToInternal maps user-friendly names to internal strategy names
-var strategyDisplayToInternal = map[string]string{
-	strategyDisplayManualCommit: strategy.StrategyNameManualCommit,
-	strategyDisplayAutoCommit:   strategy.StrategyNameAutoCommit,
-}
-
-// strategyInternalToDisplay maps internal strategy names to user-friendly names
-var strategyInternalToDisplay = map[string]string{
-	strategy.StrategyNameManualCommit: strategyDisplayManualCommit,
-	strategy.StrategyNameAutoCommit:   strategyDisplayAutoCommit,
-}
 
 func newEnableCmd() *cobra.Command {
 	var localDev bool
@@ -59,11 +41,8 @@ func newEnableCmd() *cobra.Command {
 		Short: "Enable Entire in current project",
 		Long: `Enable Entire with session tracking for your AI agent workflows.
 
-Uses the manual-commit strategy by default. To use a different strategy:
-
-  entire enable --strategy auto-commit
-
-Strategies: manual-commit (default), auto-commit`,
+Uses the manual-commit strategy, which creates session checkpoints without
+modifying your active branch.`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			// Check if we're in a git repository first - this is a prerequisite error,
 			// not a usage error, so we silence Cobra's output and use SilentError
@@ -113,13 +92,13 @@ Strategies: manual-commit (default), auto-commit`,
 	cmd.Flags().BoolVar(&useLocalSettings, "local", false, "Write settings to .entire/settings.local.json instead of .entire/settings.json")
 	cmd.Flags().BoolVar(&useProjectSettings, "project", false, "Write settings to .entire/settings.json even if it already exists")
 	cmd.Flags().StringVar(&agentName, "agent", "", "Agent to setup hooks for (e.g., claude-code). Enables non-interactive mode.")
-	cmd.Flags().StringVar(&strategyFlag, "strategy", "", "Strategy to use (manual-commit or auto-commit)")
+	cmd.Flags().StringVar(&strategyFlag, "strategy", "", "Strategy to use (currently only manual-commit)")
 	cmd.Flags().BoolVarP(&forceHooks, "force", "f", false, "Force reinstall hooks (removes existing Entire hooks first)")
 	cmd.Flags().BoolVar(&skipPushSessions, "skip-push-sessions", false, "Disable automatic pushing of session logs on git push")
 	cmd.Flags().BoolVar(&telemetry, "telemetry", true, "Enable anonymous usage analytics")
 	//nolint:errcheck,gosec // completion is optional, flag is defined above
 	cmd.RegisterFlagCompletionFunc("strategy", func(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
-		return []string{strategyDisplayManualCommit, strategyDisplayAutoCommit}, cobra.ShellCompDirectiveNoFileComp
+		return []string{strategy.StrategyNameManualCommit}, cobra.ShellCompDirectiveNoFileComp
 	})
 
 	// Provide a helpful error when --agent is used without a value
@@ -219,19 +198,11 @@ func isFullyEnabled() (enabled bool, agentDesc string, configPath string) {
 }
 
 // runEnableWithStrategy enables Entire with a specified strategy (non-interactive).
-// The selectedStrategy can be either a display name (manual-commit, auto-commit)
-// or an internal name (manual-commit, auto-commit).
 func runEnableWithStrategy(w io.Writer, selectedStrategy string, localDev, _, useLocalSettings, useProjectSettings, forceHooks, skipPushSessions, telemetry bool) error {
-	// Map the strategy to internal name if it's a display name
-	internalStrategy := selectedStrategy
-	if mapped, ok := strategyDisplayToInternal[selectedStrategy]; ok {
-		internalStrategy = mapped
-	}
-
 	// Validate the strategy exists
-	strat, err := strategy.Get(internalStrategy)
+	strat, err := strategy.Get(selectedStrategy)
 	if err != nil {
-		return fmt.Errorf("unknown strategy: %s (use manual-commit or auto-commit)", selectedStrategy)
+		return fmt.Errorf("unknown strategy: %s", selectedStrategy)
 	}
 
 	// Detect default agent
@@ -259,7 +230,7 @@ func runEnableWithStrategy(w io.Writer, selectedStrategy string, localDev, _, us
 		settings = &EntireSettings{}
 	}
 	// Update the specific fields
-	settings.Strategy = internalStrategy
+	settings.Strategy = selectedStrategy
 	settings.LocalDev = localDev
 	settings.Enabled = true
 
@@ -589,16 +560,11 @@ func setupAgentHooksNonInteractive(w io.Writer, ag agent.Agent, strategyName str
 
 	// Set strategy if provided
 	if strategyName != "" {
-		// Map display name to internal name if needed
-		internalStrategy := strategyName
-		if mapped, ok := strategyDisplayToInternal[strategyName]; ok {
-			internalStrategy = mapped
-		}
 		// Validate the strategy exists
-		if _, err := strategy.Get(internalStrategy); err != nil {
-			return fmt.Errorf("unknown strategy: %s (use manual-commit or auto-commit)", strategyName)
+		if _, err := strategy.Get(strategyName); err != nil {
+			return fmt.Errorf("unknown strategy: %s", strategyName)
 		}
-		settings.Strategy = internalStrategy
+		settings.Strategy = strategyName
 	}
 
 	// Handle telemetry for non-interactive mode

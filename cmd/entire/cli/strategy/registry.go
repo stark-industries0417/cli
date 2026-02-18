@@ -54,7 +54,6 @@ func List() []string {
 // Strategy name constants
 const (
 	StrategyNameManualCommit = "manual-commit"
-	StrategyNameAutoCommit   = "auto-commit"
 )
 
 // DefaultStrategyName is the name of the default strategy.

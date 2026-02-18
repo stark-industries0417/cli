@@ -188,7 +188,6 @@ func NewFeatureBranchEnv(t *testing.T, strategyName string) *TestEnv {
 // AllStrategies returns all strategy names for parameterized tests.
 func AllStrategies() []string {
 	return []string{
-		strategy.StrategyNameAutoCommit,
 		strategy.StrategyNameManualCommit,
 	}
 }
@@ -468,7 +467,7 @@ func (env *TestEnv) GitCommitWithMetadata(message, metadataDir string) {
 }
 
 // GitCommitWithCheckpointID creates a commit with Entire-Checkpoint trailer.
-// This simulates commits created by the auto-commit strategy.
+// This simulates commits.
 func (env *TestEnv) GitCommitWithCheckpointID(message, checkpointID string) {
 	env.T.Helper()
 

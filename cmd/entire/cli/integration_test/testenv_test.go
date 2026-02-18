@@ -211,12 +211,12 @@ func TestNewFeatureBranchEnv(t *testing.T) {
 func TestAllStrategies(t *testing.T) {
 	t.Parallel()
 	strategies := AllStrategies()
-	if len(strategies) != 2 {
+	if len(strategies) != 1 {
 		t.Errorf("AllStrategies() returned %d strategies, want 2", len(strategies))
 	}
 
 	// Verify expected strategies are present
-	expected := []string{"auto-commit", "manual-commit"}
+	expected := []string{"manual-commit"}
 	for _, exp := range expected {
 		found := false
 		for _, s := range strategies {

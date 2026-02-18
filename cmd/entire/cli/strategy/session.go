@@ -75,7 +75,6 @@ type PromptResponse struct {
 // This is used by the explain command to display checkpoint content.
 type CheckpointDetails struct {
 	// Interactions contains all prompt/response pairs in this checkpoint.
-	// For strategies like auto-commit/commit, this typically has one entry.
 	// For strategies like shadow, this may have multiple entries.
 	Interactions []PromptResponse
 

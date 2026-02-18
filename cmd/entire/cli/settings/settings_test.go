@@ -80,8 +80,9 @@ func TestLoad_AcceptsValidKeys(t *testing.T) {
 	}
 
 	// Verify values
-	if settings.Strategy != "auto-commit" {
-		t.Errorf("expected strategy 'auto-commit', got %q", settings.Strategy)
+	// Note: auto-commit strategy is automatically migrated to manual-commit
+	if settings.Strategy != DefaultStrategyName {
+		t.Errorf("expected strategy to be migrated to %q (from auto-commit), got %q", DefaultStrategyName, settings.Strategy)
 	}
 	if !settings.Enabled {
 		t.Error("expected enabled to be true")

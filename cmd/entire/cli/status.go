@@ -126,31 +126,21 @@ func runStatusDetailed(w io.Writer, settingsPath, localSettingsPath string, proj
 }
 
 // formatSettingsStatusShort formats a short settings status line.
-// Output format: "Enabled (manual-commit)" or "Disabled (auto-commit)"
+// Output format: "Enabled (manual-commit)" or "Disabled (manual-commit)"
 func formatSettingsStatusShort(settings *EntireSettings) string {
-	displayName := settings.Strategy
-	if dn, ok := strategyInternalToDisplay[settings.Strategy]; ok {
-		displayName = dn
-	}
-
 	if settings.Enabled {
-		return fmt.Sprintf("Enabled (%s)", displayName)
+		return fmt.Sprintf("Enabled (%s)", settings.Strategy)
 	}
-	return fmt.Sprintf("Disabled (%s)", displayName)
+	return fmt.Sprintf("Disabled (%s)", settings.Strategy)
 }
 
 // formatSettingsStatus formats a settings status line with source prefix.
-// Output format: "Project, enabled (manual-commit)" or "Local, disabled (auto-commit)"
+// Output format: "Project, enabled (manual-commit)" or "Local, disabled (manual-commit)"
 func formatSettingsStatus(prefix string, settings *EntireSettings) string {
-	displayName := settings.Strategy
-	if dn, ok := strategyInternalToDisplay[settings.Strategy]; ok {
-		displayName = dn
-	}
-
 	if settings.Enabled {
-		return fmt.Sprintf("%s, enabled (%s)", prefix, displayName)
+		return fmt.Sprintf("%s, enabled (%s)", prefix, settings.Strategy)
 	}
-	return fmt.Sprintf("%s, disabled (%s)", prefix, displayName)
+	return fmt.Sprintf("%s, disabled (%s)", prefix, settings.Strategy)
 }
 
 // timeAgo formats a time as a human-readable relative duration.

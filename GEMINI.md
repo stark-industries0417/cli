@@ -159,10 +159,7 @@ All strategies implement:
 
 | Strategy | Main Branch | Metadata Storage | Use Case |
 |----------|-------------|------------------|----------|
-| **manual-commit** (default) | Unchanged (no commits) | `entire/<HEAD-hash>` branches + `entire/checkpoints/v1` | Recommended for most workflows |
-| **auto-commit** | Creates clean commits | Orphan `entire/checkpoints/v1` branch | Teams that want code commits from sessions |
-
-Legacy names `shadow` and `dual` are only recognized when reading settings or checkpoint metadata.
+| **manual-commit** (default) | Unchanged (no commits) | `entire/<HEAD-hash>` branches + `entire/checkpoints/v1` | Session management without modifying active branch |
 
 #### Strategy Details
 
@@ -175,16 +172,6 @@ Legacy names `shadow` and `dual` are only recognized when reading settings or ch
 - Tracks session state in `.git/entire-sessions/` (shared across worktrees)
 - PrePush hook can push `entire/checkpoints/v1` branch alongside user pushes
 - `AllowsMainBranch() = true` - safe to use on main/master since it never modifies commit history
-
-**Auto-Commit Strategy** (`auto_commit.go`)
-- Code commits to active branch with **clean history** (commits have `Entire-Checkpoint` trailer only)
-- Metadata stored on orphan `entire/checkpoints/v1` branch at sharded paths: `<id[:2]>/<id[2:]>/`
-- Uses `checkpoint.WriteCommitted()` for metadata storage
-- Checkpoint ID (12-hex-char) links code commits to metadata on `entire/checkpoints/v1`
-- Full rewind allowed if commit is only on current branch (not in main); otherwise logs-only
-- Rewind via `git reset --hard`
-- PrePush hook can push `entire/checkpoints/v1` branch alongside user pushes
-- `AllowsMainBranch() = false` - creates commits, so not recommended on main branch
 
 #### Key Files
 
@@ -202,7 +189,6 @@ Legacy names `shadow` and `dual` are only recognized when reading settings or ch
 - `manual_commit_logs.go` - Session log retrieval and session listing
 - `manual_commit_hooks.go` - Git hook handlers (prepare-commit-msg, pre-push)
 - `manual_commit_reset.go` - Shadow branch reset/cleanup functionality
-- `auto_commit.go` - Auto-commit strategy implementation
 - `hooks.go` - Git hook installation
 
 #### Checkpoint Package (`cmd/entire/cli/checkpoint/`)
@@ -248,7 +234,7 @@ Legacy names `shadow` and `dual` are only recognized when reading settings or ch
 
 #### Commit Trailers
 
-**On active branch commits (auto-commit strategy only):**
+**On active branch commits:**
 - `Entire-Checkpoint: <checkpoint-id>` - 12-hex-char ID linking to metadata on `entire/checkpoints/v1`
 
 **On shadow branch commits (`entire/<commit-hash>`):**

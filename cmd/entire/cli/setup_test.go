@@ -357,9 +357,9 @@ func TestRunEnableWithStrategy_PreservesExistingSettings(t *testing.T) {
 	}`
 	writeSettings(t, initialSettings)
 
-	// Run enable with a different strategy
+	// Run enable with the same strategy
 	var stdout bytes.Buffer
-	err := runEnableWithStrategy(&stdout, "auto-commit", false, false, false, true, false, false, false)
+	err := runEnableWithStrategy(&stdout, "manual-commit", false, false, false, true, false, false, false)
 	if err != nil {
 		t.Fatalf("runEnableWithStrategy() error = %v", err)
 	}
@@ -371,8 +371,8 @@ func TestRunEnableWithStrategy_PreservesExistingSettings(t *testing.T) {
 	}
 
 	// Strategy should be updated
-	if settings.Strategy != "auto-commit" {
-		t.Errorf("Strategy should be 'auto-commit', got %q", settings.Strategy)
+	if settings.Strategy != "manual-commit" {
+		t.Errorf("Strategy should be 'manual-commit', got %q", settings.Strategy)
 	}
 
 	// strategy_options should be preserved
@@ -403,7 +403,7 @@ func TestRunEnableWithStrategy_PreservesLocalSettings(t *testing.T) {
 
 	// Run enable with --local flag
 	var stdout bytes.Buffer
-	err := runEnableWithStrategy(&stdout, "auto-commit", false, false, true, false, false, false, false)
+	err := runEnableWithStrategy(&stdout, "manual-commit", false, false, true, false, false, false, false)
 	if err != nil {
 		t.Fatalf("runEnableWithStrategy() error = %v", err)
 	}
@@ -415,8 +415,8 @@ func TestRunEnableWithStrategy_PreservesLocalSettings(t *testing.T) {
 	}
 
 	// Strategy should be updated (from local)
-	if settings.Strategy != "auto-commit" {
-		t.Errorf("Strategy should be 'auto-commit', got %q", settings.Strategy)
+	if settings.Strategy != "manual-commit" {
+		t.Errorf("Strategy should be 'manual-commit', got %q", settings.Strategy)
 	}
 
 	// strategy_options.push should be preserved

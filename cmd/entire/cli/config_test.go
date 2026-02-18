@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	settingspkg "github.com/entireio/cli/cmd/entire/cli/settings"
 	"github.com/entireio/cli/cmd/entire/cli/strategy"
 )
 
@@ -165,7 +166,7 @@ func TestLoadEntireSettings_LocalOverridesStrategy(t *testing.T) {
 		t.Fatalf("Failed to write settings file: %v", err)
 	}
 
-	localSettings := `{"strategy": "` + strategy.StrategyNameAutoCommit + `"}`
+	localSettings := `{"strategy": "` + strategy.StrategyNameManualCommit + `"}`
 	if err := os.WriteFile(EntireSettingsLocalFile, []byte(localSettings), 0o644); err != nil {
 		t.Fatalf("Failed to write local settings file: %v", err)
 	}
@@ -174,8 +175,8 @@ func TestLoadEntireSettings_LocalOverridesStrategy(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadEntireSettings() error = %v", err)
 	}
-	if settings.Strategy != strategy.StrategyNameAutoCommit {
-		t.Errorf("Strategy should be 'auto-commit' from local override, got %q", settings.Strategy)
+	if settings.Strategy != strategy.StrategyNameManualCommit {
+		t.Errorf("Strategy should be 'manual-commit' from local override, got %q", settings.Strategy)
 	}
 	if !settings.Enabled {
 		t.Error("Enabled should remain true from base settings")
@@ -271,8 +272,9 @@ func TestLoadEntireSettings_OnlyLocalFileExists(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadEntireSettings() error = %v", err)
 	}
-	if settings.Strategy != strategyDisplayAutoCommit {
-		t.Errorf("Strategy should be 'auto-commit' from local file, got %q", settings.Strategy)
+	// Auto-commit strategy is automatically migrated to manual-commit
+	if settings.Strategy != strategy.StrategyNameManualCommit {
+		t.Errorf("Strategy should be migrated to 'manual-commit' from auto-commit, got %q", settings.Strategy)
 	}
 	if !settings.Enabled {
 		t.Error("Enabled should default to true")
@@ -291,7 +293,7 @@ func TestLoadEntireSettings_NoLocalFileUsesBase(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadEntireSettings() error = %v", err)
 	}
-	if settings.Strategy != "manual-commit" {
+	if settings.Strategy != settingspkg.DefaultStrategyName {
 		t.Errorf("Strategy should be 'shadow' from base settings, got %q", settings.Strategy)
 	}
 }
@@ -313,7 +315,7 @@ func TestLoadEntireSettings_EmptyStrategyInLocalDoesNotOverride(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadEntireSettings() error = %v", err)
 	}
-	if settings.Strategy != "manual-commit" {
+	if settings.Strategy != settingspkg.DefaultStrategyName {
 		t.Errorf("Strategy should remain 'shadow', got %q", settings.Strategy)
 	}
 }

@@ -184,15 +184,11 @@ Multiple AI sessions can run on the same commit. If you start a second session w
 | `--local`              | Write settings to `settings.local.json` instead of `settings.json` |
 | `--project`            | Write settings to `settings.json` even if it already exists        |
 | `--skip-push-sessions` | Disable automatic pushing of session logs on git push              |
-| `--strategy <name>`    | Strategy to use: `manual-commit` (default) or `auto-commit`        |
 | `--telemetry=false`    | Disable anonymous usage analytics                                  |
 
 **Examples:**
 
 ```
-# Use auto-commit strategy
-entire enable --strategy auto-commit
-
 # Force reinstall hooks
 entire enable --force
 
@@ -233,7 +229,7 @@ Personal overrides, gitignored by default:
 |--------------------------------------|----------------------------------|------------------------------------------------------|
 | `enabled`                            | `true`, `false`                  | Enable/disable Entire                                |
 | `log_level`                          | `debug`, `info`, `warn`, `error` | Logging verbosity                                    |
-| `strategy`                           | `manual-commit`, `auto-commit`   | Session capture strategy                             |
+| `strategy`                           | `manual-commit`                  | Session capture strategy                             |
 | `strategy_options.push_sessions`     | `true`, `false`                  | Auto-push `entire/checkpoints/v1` branch on git push |
 | `strategy_options.summarize.enabled` | `true`, `false`                  | Auto-generate AI summaries at commit time            |
 | `telemetry`                          | `true`, `false`                  | Send anonymous usage statistics to Posthog           |
@@ -284,7 +280,7 @@ If you run into any issues with Gemini CLI integration, please [open an issue](h
 |--------------------------|-------------------------------------------------------------------------------------------|
 | "Not a git repository"   | Navigate to a Git repository first                                                        |
 | "Entire is disabled"     | Run `entire enable`                                                                       |
-| "No rewind points found" | Work with Claude Code and commit (manual-commit) or wait for agent response (auto-commit) |
+| "No rewind points found" | Work with Claude Code and commit your changes                                             |
 | "shadow branch conflict" | Run `entire reset --force`                                                                |
 
 ### SSH Authentication Errors

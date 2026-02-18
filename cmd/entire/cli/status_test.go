@@ -71,7 +71,7 @@ func TestRunStatus_NotGitRepository(t *testing.T) {
 
 func TestRunStatus_LocalSettingsOnly(t *testing.T) {
 	setupTestRepo(t)
-	writeLocalSettings(t, `{"strategy": "auto-commit", "enabled": true}`)
+	writeLocalSettings(t, `{"strategy": "manual-commit", "enabled": true}`)
 
 	var stdout bytes.Buffer
 	if err := runStatus(&stdout, true); err != nil {
@@ -80,8 +80,8 @@ func TestRunStatus_LocalSettingsOnly(t *testing.T) {
 
 	output := stdout.String()
 	// Should show effective status first
-	if !strings.Contains(output, "Enabled (auto-commit)") {
-		t.Errorf("Expected output to show effective 'Enabled (auto-commit)', got: %s", output)
+	if !strings.Contains(output, "Enabled (manual-commit)") {
+		t.Errorf("Expected output to show effective 'Enabled (manual-commit)', got: %s", output)
 	}
 	// Should show per-file details
 	if !strings.Contains(output, "Local, enabled") {
@@ -95,10 +95,10 @@ func TestRunStatus_LocalSettingsOnly(t *testing.T) {
 func TestRunStatus_BothProjectAndLocal(t *testing.T) {
 	setupTestRepo(t)
 	// Project: enabled=true, strategy=manual-commit
-	// Local: enabled=false, strategy=auto-commit
+	// Local: enabled=false, strategy=manual-commit
 	// Detailed mode shows effective status first, then each file separately
 	writeSettings(t, `{"strategy": "manual-commit", "enabled": true}`)
-	writeLocalSettings(t, `{"strategy": "auto-commit", "enabled": false}`)
+	writeLocalSettings(t, `{"strategy": "manual-commit", "enabled": false}`)
 
 	var stdout bytes.Buffer
 	if err := runStatus(&stdout, true); err != nil {
@@ -107,25 +107,25 @@ func TestRunStatus_BothProjectAndLocal(t *testing.T) {
 
 	output := stdout.String()
 	// Should show effective status first (local overrides project)
-	if !strings.Contains(output, "Disabled (auto-commit)") {
-		t.Errorf("Expected output to show effective 'Disabled (auto-commit)', got: %s", output)
+	if !strings.Contains(output, "Disabled (manual-commit)") {
+		t.Errorf("Expected output to show effective 'Disabled (manual-commit)', got: %s", output)
 	}
 	// Should show both settings separately
 	if !strings.Contains(output, "Project, enabled (manual-commit)") {
 		t.Errorf("Expected output to show 'Project, enabled (manual-commit)', got: %s", output)
 	}
-	if !strings.Contains(output, "Local, disabled (auto-commit)") {
-		t.Errorf("Expected output to show 'Local, disabled (auto-commit)', got: %s", output)
+	if !strings.Contains(output, "Local, disabled (manual-commit)") {
+		t.Errorf("Expected output to show 'Local, disabled (manual-commit)', got: %s", output)
 	}
 }
 
 func TestRunStatus_BothProjectAndLocal_Short(t *testing.T) {
 	setupTestRepo(t)
 	// Project: enabled=true, strategy=manual-commit
-	// Local: enabled=false, strategy=auto-commit
+	// Local: enabled=false, strategy=manual-commit
 	// Short mode shows merged/effective settings
 	writeSettings(t, `{"strategy": "manual-commit", "enabled": true}`)
-	writeLocalSettings(t, `{"strategy": "auto-commit", "enabled": false}`)
+	writeLocalSettings(t, `{"strategy": "manual-commit", "enabled": false}`)
 
 	var stdout bytes.Buffer
 	if err := runStatus(&stdout, false); err != nil {
@@ -134,14 +134,14 @@ func TestRunStatus_BothProjectAndLocal_Short(t *testing.T) {
 
 	output := stdout.String()
 	// Should show merged/effective state (local overrides project)
-	if !strings.Contains(output, "Disabled (auto-commit)") {
-		t.Errorf("Expected output to show 'Disabled (auto-commit)', got: %s", output)
+	if !strings.Contains(output, "Disabled (manual-commit)") {
+		t.Errorf("Expected output to show 'Disabled (manual-commit)', got: %s", output)
 	}
 }
 
 func TestRunStatus_ShowsStrategy(t *testing.T) {
 	setupTestRepo(t)
-	writeSettings(t, `{"strategy": "auto-commit", "enabled": true}`)
+	writeSettings(t, `{"strategy": "manual-commit", "enabled": true}`)
 
 	var stdout bytes.Buffer
 	if err := runStatus(&stdout, false); err != nil {
@@ -149,8 +149,8 @@ func TestRunStatus_ShowsStrategy(t *testing.T) {
 	}
 
 	output := stdout.String()
-	if !strings.Contains(output, "(auto-commit)") {
-		t.Errorf("Expected output to show strategy '(auto-commit)', got: %s", output)
+	if !strings.Contains(output, "(manual-commit)") {
+		t.Errorf("Expected output to show strategy '(manual-commit)', got: %s", output)
 	}
 }
 

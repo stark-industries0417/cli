@@ -87,6 +87,19 @@ func Load() (*EntireSettings, error) {
 
 	applyDefaults(settings)
 
+	// Migrate deprecated auto-commit strategy
+	if migrated, err := migrateDeprecatedStrategy(settings, settingsFileAbs, localSettingsFileAbs); err != nil {
+		// Log migration error but don't fail - continue with migrated settings
+		fmt.Fprintf(os.Stderr, "Warning: could not migrate deprecated strategy setting: %v\n", err)
+	} else if migrated {
+		// Print migration warning
+		fmt.Fprintln(os.Stderr, "⚠️  Auto-commit strategy has been removed and is no longer supported.")
+		fmt.Fprintln(os.Stderr, "   Your settings have been automatically updated to use 'manual-commit' strategy.")
+		fmt.Fprintln(os.Stderr, "")
+		fmt.Fprintln(os.Stderr, "   Manual-commit provides similar session management without creating commits")
+		fmt.Fprintln(os.Stderr, "   on your active branch. See 'entire help' for more details.")
+	}
+
 	return settings, nil
 }
 
@@ -205,6 +218,48 @@ func mergeJSON(settings *EntireSettings, data []byte) error {
 	}
 
 	return nil
+}
+
+// migrateDeprecatedStrategy handles migration from removed "auto-commit" strategy to "manual-commit".
+// Returns true if migration occurred, false if no migration was needed.
+func migrateDeprecatedStrategy(settings *EntireSettings, settingsFileAbs string, localSettingsFileAbs string) (bool, error) {
+	const deprecatedStrategy = "auto-commit"
+
+	// Check if auto-commit strategy is configured
+	if settings.Strategy != deprecatedStrategy {
+		return false, nil // No migration needed
+	}
+
+	// Update strategy to manual-commit
+	settings.Strategy = DefaultStrategyName
+
+	// Try to update settings files where auto-commit was configured
+	// Check which file(s) contain the auto-commit setting
+	baseSettings, err := loadFromFile(settingsFileAbs)
+	if err != nil {
+		return true, fmt.Errorf("reading base settings file for migration: %w", err)
+	}
+
+	// Save to base settings file if it had auto-commit
+	if baseSettings.Strategy == deprecatedStrategy {
+		baseSettings.Strategy = DefaultStrategyName
+		if err := saveToFile(baseSettings, settingsFileAbs); err != nil {
+			// Don't fail the whole migration if one file can't be saved
+			fmt.Fprintf(os.Stderr, "Warning: could not save migrated base settings: %v\n", err)
+		}
+	}
+
+	// Check and update local settings if it exists and has auto-commit
+	localSettings, err := LoadFromFile(localSettingsFileAbs)
+	if err == nil && localSettings != nil && localSettings.Strategy == deprecatedStrategy {
+		localSettings.Strategy = DefaultStrategyName
+		if err := saveToFile(localSettings, localSettingsFileAbs); err != nil {
+			// Don't fail the whole migration if local file can't be saved
+			fmt.Fprintf(os.Stderr, "Warning: could not save migrated local settings: %v\n", err)
+		}
+	}
+
+	return true, nil
 }
 
 func applyDefaults(settings *EntireSettings) {
