@@ -216,3 +216,7 @@ If you need specific details from before exiting plan mode (like exact code snip
 ---
 
 commit the changes
+
+---
+
+that test should check if the session was created

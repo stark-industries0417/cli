@@ -21,3 +21,7 @@ Agents (Claude Code, Gemini CLI) store transcripts in directories derived from t
 
 commit the changes
 
+### Prompt 3
+
+that test should check if the session was created
+
