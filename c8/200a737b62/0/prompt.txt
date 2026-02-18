@@ -325,3 +325,13 @@ FAIL    github.com/entireio/cli/cmd/entire/cli/e2e_test    15.409s
 ---
 
 [Request interrupted by user for tool use]
+
+---
+
+<task-notification>
+<task-id>bcab768</task-id>
+<output-file>/private/tmp/claude-501/-Users-gtrrz-victor-wks-cli-cli/tasks/bcab768.output</output-file>
+<status>completed</status>
+<summary>Background command "mise run fmt && mise run lint && mise run test:ci 2>&1 | tail -15" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /private/tmp/claude-501/-Users-gtrrz-victor-wks-cli-cli/tasks/bcab768.output
