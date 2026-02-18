@@ -1,0 +1,31 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "e2bc6bfd4a2a",
+  "session_id": "a8459c2d-1c3d-4625-8bd3-3c7fa747d6c3",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-18T08:03:28.100259Z",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    ".gitignore"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "0fcad23f935f",
+  "token_usage": {
+    "input_tokens": 10,
+    "cache_creation_tokens": 44934,
+    "cache_read_tokens": 218528,
+    "output_tokens": 828,
+    "api_call_count": 6
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-18T08:03:27.983881Z",
+    "agent_lines": 1,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 1,
+    "agent_percentage": 100
+  },
+  "transcript_path": ".claude/projects/-Users-kwon-Desktop-para-project-entire/a8459c2d-1c3d-4625-8bd3-3c7fa747d6c3.jsonl"
+}
