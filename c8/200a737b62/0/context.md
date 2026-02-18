@@ -25,3 +25,7 @@ commit the changes
 
 that test should check if the session was created
 
+### Prompt 4
+
+entire resume need the branch name to resume it, entire resume branchname --force
+

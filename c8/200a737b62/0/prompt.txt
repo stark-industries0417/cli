@@ -220,3 +220,7 @@ commit the changes
 ---
 
 that test should check if the session was created
+
+---
+
+entire resume need the branch name to resume it, entire resume branchname --force
