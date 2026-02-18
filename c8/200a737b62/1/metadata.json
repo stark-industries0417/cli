@@ -3,7 +3,7 @@
   "checkpoint_id": "c8200a737b62",
   "session_id": "aae0d59c-b2fe-438c-b8d8-f59339162dd9",
   "strategy": "manual-commit",
-  "created_at": "2026-02-18T04:34:05.304813Z",
+  "created_at": "2026-02-18T04:39:29.510822Z",
   "branch": "gtrrz-victor/fix-restore-sessions",
   "checkpoints_count": 1,
   "files_touched": [
@@ -23,12 +23,12 @@
     "api_call_count": 7
   },
   "initial_attribution": {
-    "calculated_at": "2026-02-18T04:34:05.18162Z",
+    "calculated_at": "2026-02-18T04:39:29.446206Z",
     "agent_lines": 0,
-    "human_added": 0,
-    "human_modified": 0,
+    "human_added": 35,
+    "human_modified": 28,
     "human_removed": 0,
-    "total_committed": 0,
+    "total_committed": 35,
     "agent_percentage": 0
   }
 }
