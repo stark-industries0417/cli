@@ -29,3 +29,32 @@ that test should check if the session was created
 
 entire resume need the branch name to resume it, entire resume branchname --force
 
+### Prompt 5
+
+the test is failing:
+Running tool: /Users/gtrrz-victor/.local/share/mise/installs/go/1.25.6/bin/go test -test.fullpath=true -timeout 30s -tags e2e,integration -run ^TestE2E_ResumeInRelocatedRepo$ -count=1 -race
+
+--- FAIL: TestE2E_ResumeInRelocatedRepo (13.27s)
+    /Users/gtrrz-victor/wks/cli/cli/cmd/entire/cli/e2e_test/resume_relocated_repo_test.go:31: entire enable output: Agent: Claude Code
+        
+        Installed 7 hooks for Claude Code - Anthropic's CLI coding assistant
+        ✓ Projec...
+
+### Prompt 6
+
+[Request interrupted by user for tool use]
+
+### Prompt 7
+
+Running tool: /Users/gtrrz-victor/.local/share/mise/installs/go/1.25.6/bin/go test -test.fullpath=true -timeout 30s -tags e2e,integration -run ^TestE2E_ResumeInRelocatedRepo$ -count=1 -race
+
+--- FAIL: TestE2E_ResumeInRelocatedRepo (12.98s)
+    /Users/gtrrz-victor/wks/cli/cli/cmd/entire/cli/e2e_test/resume_relocated_repo_test.go:31: entire enable output: Agent: Claude Code
+        
+        Installed 7 hooks for Claude Code - Anthropic's CLI coding assistant
+        ✓ Project configured (.entire...
+
+### Prompt 8
+
+[Request interrupted by user for tool use]
+

@@ -3,28 +3,28 @@
   "checkpoint_id": "c8200a737b62",
   "session_id": "0a32cf23-529c-4701-b454-4a192d827c5c",
   "strategy": "manual-commit",
-  "created_at": "2026-02-18T04:42:35.471503Z",
+  "created_at": "2026-02-18T04:56:32.938646Z",
   "branch": "gtrrz-victor/fix-restore-sessions",
   "checkpoints_count": 1,
   "files_touched": [
     "cmd/entire/cli/e2e_test/resume_relocated_repo_test.go"
   ],
   "agent": "Claude Code",
-  "turn_id": "aee11ba2821e",
+  "turn_id": "c4b2731e42e2",
   "token_usage": {
-    "input_tokens": 22228,
-    "cache_creation_tokens": 303246,
-    "cache_read_tokens": 5977733,
-    "output_tokens": 6991,
-    "api_call_count": 61
+    "input_tokens": 22243,
+    "cache_creation_tokens": 313166,
+    "cache_read_tokens": 7442110,
+    "output_tokens": 8198,
+    "api_call_count": 72
   },
   "initial_attribution": {
-    "calculated_at": "2026-02-18T04:42:34.959635Z",
-    "agent_lines": 0,
-    "human_added": 1,
-    "human_modified": 2,
+    "calculated_at": "2026-02-18T04:56:32.311099Z",
+    "agent_lines": 4,
+    "human_added": 8,
+    "human_modified": 0,
     "human_removed": 0,
-    "total_committed": 1,
-    "agent_percentage": 0
+    "total_committed": 12,
+    "agent_percentage": 33.33333333333333
   }
 }
