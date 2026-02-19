@@ -1,0 +1,31 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "fdf972d45079",
+  "session_id": "d9dc60d1-9595-45bb-bf92-27c6733adad1",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-19T11:47:34.343929Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".claude/CLAUDE.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "3c5514edb310",
+  "token_usage": {
+    "input_tokens": 114,
+    "cache_creation_tokens": 221494,
+    "cache_read_tokens": 3783609,
+    "output_tokens": 3160,
+    "api_call_count": 52
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-19T11:47:34.267493Z",
+    "agent_lines": 59,
+    "human_added": 1,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 60,
+    "agent_percentage": 98.33333333333333
+  },
+  "transcript_path": ".claude/projects/-Users-kwon-Desktop-para-project-entire/d9dc60d1-9595-45bb-bf92-27c6733adad1.jsonl"
+}
