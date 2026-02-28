@@ -14,10 +14,10 @@ import (
 	"time"
 
 	"github.com/entireio/cli/cmd/entire/cli/agent"
-	"github.com/entireio/cli/cmd/entire/cli/buildinfo"
 	"github.com/entireio/cli/cmd/entire/cli/checkpoint/id"
 	"github.com/entireio/cli/cmd/entire/cli/paths"
 	"github.com/entireio/cli/cmd/entire/cli/trailers"
+	"github.com/entireio/cli/cmd/entire/cli/versioninfo"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
@@ -319,7 +319,7 @@ func TestWriteTemporary_Deduplication(t *testing.T) {
 		t.Fatalf("failed to commit: %v", err)
 	}
 
-	// Change to temp dir so paths.RepoRoot() works correctly
+	// Change to temp dir so paths.WorktreeRoot() works correctly
 	t.Chdir(tempDir)
 
 	// Create a test file that will be included in checkpoints
@@ -1631,7 +1631,7 @@ func TestWriteTemporary_FirstCheckpoint_CapturesModifiedTrackedFiles(t *testing.
 		t.Fatalf("failed to modify README: %v", err)
 	}
 
-	// Change to temp dir so paths.RepoRoot() works correctly
+	// Change to temp dir so paths.WorktreeRoot() works correctly
 	t.Chdir(tempDir)
 
 	// Create metadata directory
@@ -1732,7 +1732,7 @@ func TestWriteTemporary_FirstCheckpoint_CapturesUntrackedFiles(t *testing.T) {
 		t.Fatalf("failed to write untracked file: %v", err)
 	}
 
-	// Change to temp dir so paths.RepoRoot() works correctly
+	// Change to temp dir so paths.WorktreeRoot() works correctly
 	t.Chdir(tempDir)
 
 	// Create metadata directory
@@ -1841,7 +1841,7 @@ func TestWriteTemporary_FirstCheckpoint_ExcludesGitIgnoredFiles(t *testing.T) {
 		t.Fatalf("failed to write ignored file: %v", err)
 	}
 
-	// Change to temp dir so paths.RepoRoot() works correctly
+	// Change to temp dir so paths.WorktreeRoot() works correctly
 	t.Chdir(tempDir)
 
 	// Create metadata directory
@@ -1942,7 +1942,7 @@ func TestWriteTemporary_FirstCheckpoint_UserAndAgentChanges(t *testing.T) {
 		t.Fatalf("failed to modify main.go: %v", err)
 	}
 
-	// Change to temp dir so paths.RepoRoot() works correctly
+	// Change to temp dir so paths.WorktreeRoot() works correctly
 	t.Chdir(tempDir)
 
 	// Create metadata directory
@@ -2056,7 +2056,7 @@ func TestWriteTemporary_FirstCheckpoint_CapturesUserDeletedFiles(t *testing.T) {
 		t.Fatalf("failed to delete file: %v", err)
 	}
 
-	// Change to temp dir so paths.RepoRoot() works correctly
+	// Change to temp dir so paths.WorktreeRoot() works correctly
 	t.Chdir(tempDir)
 
 	// Create metadata directory
@@ -2154,7 +2154,7 @@ func TestWriteTemporary_FirstCheckpoint_CapturesRenamedFiles(t *testing.T) {
 		t.Fatalf("failed to git mv: %v", err)
 	}
 
-	// Change to temp dir so paths.RepoRoot() works correctly
+	// Change to temp dir so paths.WorktreeRoot() works correctly
 	t.Chdir(tempDir)
 
 	// Create metadata directory
@@ -2250,7 +2250,7 @@ func TestWriteTemporary_FirstCheckpoint_FilenamesWithSpaces(t *testing.T) {
 		t.Fatalf("failed to write file with spaces: %v", err)
 	}
 
-	// Change to temp dir so paths.RepoRoot() works correctly
+	// Change to temp dir so paths.WorktreeRoot() works correctly
 	t.Chdir(tempDir)
 
 	// Create metadata directory
@@ -2857,7 +2857,7 @@ func TestCopyMetadataDir_RedactsSecrets(t *testing.T) {
 	}
 }
 
-// TestWriteCommitted_CLIVersionField verifies that buildinfo.Version is written
+// TestWriteCommitted_CLIVersionField verifies that versioninfo.Version is written
 // to both the root CheckpointSummary and session-level CommittedMetadata.
 func TestWriteCommitted_CLIVersionField(t *testing.T) {
 	t.Parallel()
@@ -2942,8 +2942,8 @@ func TestWriteCommitted_CLIVersionField(t *testing.T) {
 		t.Fatalf("failed to parse root metadata.json: %v", err)
 	}
 
-	if summary.CLIVersion != buildinfo.Version {
-		t.Errorf("CheckpointSummary.CLIVersion = %q, want %q", summary.CLIVersion, buildinfo.Version)
+	if summary.CLIVersion != versioninfo.Version {
+		t.Errorf("CheckpointSummary.CLIVersion = %q, want %q", summary.CLIVersion, versioninfo.Version)
 	}
 
 	// Verify session-level metadata.json (CommittedMetadata) has CLIVersion
@@ -2967,8 +2967,8 @@ func TestWriteCommitted_CLIVersionField(t *testing.T) {
 		t.Fatalf("failed to parse session metadata.json: %v", err)
 	}
 
-	if sessionMetadata.CLIVersion != buildinfo.Version {
-		t.Errorf("CommittedMetadata.CLIVersion = %q, want %q", sessionMetadata.CLIVersion, buildinfo.Version)
+	if sessionMetadata.CLIVersion != versioninfo.Version {
+		t.Errorf("CommittedMetadata.CLIVersion = %q, want %q", sessionMetadata.CLIVersion, versioninfo.Version)
 	}
 }
 
@@ -3288,7 +3288,7 @@ func TestWriteCommitted_SubagentTranscript_JSONLFallback(t *testing.T) {
 }
 
 func TestWriteTemporaryTask_SubagentTranscript_RedactsSecrets(t *testing.T) {
-	// Cannot use t.Parallel() because t.Chdir is required for paths.RepoRoot()
+	// Cannot use t.Parallel() because t.Chdir is required for paths.WorktreeRoot()
 	tempDir := t.TempDir()
 
 	// Initialize a git repository with an initial commit

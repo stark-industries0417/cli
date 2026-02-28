@@ -13,7 +13,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/entireio/cli/cmd/entire/cli/agent"
+	"github.com/entireio/cli/cmd/entire/cli/agent/types"
 	"github.com/entireio/cli/cmd/entire/cli/logging"
 	"github.com/entireio/cli/cmd/entire/cli/paths"
 	"github.com/entireio/cli/cmd/entire/cli/strategy"
@@ -22,12 +22,12 @@ import (
 // handleClaudeCodePostTodo handles the PostToolUse[TodoWrite] hook for subagent checkpoints.
 // Creates a checkpoint if we're in a subagent context (active pre-task file exists).
 // Skips silently if not in subagent context (main agent).
-func handleClaudeCodePostTodo() error {
-	return handleClaudeCodePostTodoFromReader(os.Stdin)
+func handleClaudeCodePostTodo(ctx context.Context) error {
+	return handleClaudeCodePostTodoFromReader(ctx, os.Stdin)
 }
 
 // handleClaudeCodePostTodoFromReader is the testable version that accepts an io.Reader.
-func handleClaudeCodePostTodoFromReader(reader io.Reader) error {
+func handleClaudeCodePostTodoFromReader(ctx context.Context, reader io.Reader) error {
 	input, err := parseSubagentCheckpointHookInput(reader)
 	if err != nil {
 		return fmt.Errorf("failed to parse PostToolUse[TodoWrite] input: %w", err)
@@ -39,7 +39,7 @@ func handleClaudeCodePostTodoFromReader(reader io.Reader) error {
 		return fmt.Errorf("failed to get agent: %w", err)
 	}
 
-	logCtx := logging.WithAgent(logging.WithComponent(context.Background(), "hooks"), ag.Name())
+	logCtx := logging.WithAgent(logging.WithComponent(ctx, "hooks"), ag.Name())
 	logging.Info(logCtx, "post-todo",
 		slog.String("hook", "post-todo"),
 		slog.String("hook_type", "subagent"),
@@ -49,40 +49,43 @@ func handleClaudeCodePostTodoFromReader(reader io.Reader) error {
 	)
 
 	// Check if we're in a subagent context by looking for an active pre-task file
-	taskToolUseID, found := FindActivePreTaskFile()
+	taskToolUseID, found := FindActivePreTaskFile(ctx)
 	if !found {
 		// Not in subagent context - this is a main agent TodoWrite, skip
 		return nil
 	}
 
 	// Skip on default branch to avoid polluting main/master history
-	if skip, branchName := ShouldSkipOnDefaultBranch(); skip {
-		fmt.Fprintf(os.Stderr, "Entire: skipping incremental checkpoint on branch '%s'\n", branchName)
+	if skip, branchName := ShouldSkipOnDefaultBranch(ctx); skip {
+		logging.Info(logCtx, "skipping incremental checkpoint on default branch",
+			slog.String("branch", branchName))
 		return nil
 	}
 
 	// Detect file changes since last checkpoint
-	changes, err := DetectFileChanges(nil)
+	changes, err := DetectFileChanges(ctx, nil)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: failed to detect changed files: %v\n", err)
+		logging.Warn(logCtx, "failed to detect changed files",
+			slog.String("error", err.Error()))
 		return nil
 	}
 
 	// If no file changes, skip creating a checkpoint
 	if len(changes.Modified) == 0 && len(changes.New) == 0 && len(changes.Deleted) == 0 {
-		fmt.Fprintf(os.Stderr, "[entire] No file changes detected, skipping incremental checkpoint\n")
+		logging.Info(logCtx, "no file changes detected, skipping incremental checkpoint")
 		return nil
 	}
 
 	// Get git author
-	author, err := GetGitAuthor()
+	author, err := GetGitAuthor(ctx)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: failed to get git author: %v\n", err)
+		logging.Warn(logCtx, "failed to get git author",
+			slog.String("error", err.Error()))
 		return nil
 	}
 
 	// Get the active strategy
-	strat := GetStrategy()
+	strat := GetStrategy(ctx)
 
 	// Get the session ID from the transcript path or input, then transform to Entire session ID
 	sessionID := input.SessionID
@@ -110,13 +113,13 @@ func handleClaudeCodePostTodoFromReader(reader io.Reader) error {
 	}
 
 	// Get agent type from the currently executing hook agent (authoritative source)
-	var agentType agent.AgentType
+	var agentType types.AgentType
 	if hookAgent, agentErr := GetCurrentHookAgent(); agentErr == nil {
 		agentType = hookAgent.Type()
 	}
 
 	// Build incremental task step context
-	ctx := strategy.TaskStepContext{
+	taskStepCtx := strategy.TaskStepContext{
 		SessionID:           sessionID,
 		ToolUseID:           taskToolUseID,
 		ModifiedFiles:       changes.Modified,
@@ -134,12 +137,15 @@ func handleClaudeCodePostTodoFromReader(reader io.Reader) error {
 	}
 
 	// Save incremental task step
-	if err := strat.SaveTaskStep(ctx); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: failed to save incremental task step: %v\n", err)
+	if err := strat.SaveTaskStep(ctx, taskStepCtx); err != nil {
+		logging.Warn(logCtx, "failed to save incremental task step",
+			slog.String("error", err.Error()))
 		return nil
 	}
 
-	fmt.Fprintf(os.Stderr, "[entire] Created incremental checkpoint #%d for %s (task: %s)\n",
-		seq, input.ToolName, taskToolUseID[:min(12, len(taskToolUseID))])
+	logging.Info(logCtx, "created incremental checkpoint",
+		slog.Int("sequence", seq),
+		slog.String("tool_name", input.ToolName),
+		slog.String("task", taskToolUseID[:min(12, len(taskToolUseID))]))
 	return nil
 }

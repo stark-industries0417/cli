@@ -1,8 +1,8 @@
 package cli
 
 import (
+	"context"
 	"errors"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/entireio/cli/cmd/entire/cli/agent"
+	"github.com/entireio/cli/cmd/entire/cli/agent/types"
 	"github.com/entireio/cli/cmd/entire/cli/paths"
 	"github.com/entireio/cli/cmd/entire/cli/strategy"
 	"github.com/go-git/go-git/v5"
@@ -18,33 +19,21 @@ import (
 
 // mockLifecycleAgent is a minimal Agent implementation for lifecycle tests.
 type mockLifecycleAgent struct {
-	name           agent.AgentName
-	agentType      agent.AgentType
+	name           types.AgentName
+	agentType      types.AgentType
 	transcriptData []byte
 	transcriptErr  error
 }
 
 var _ agent.Agent = (*mockLifecycleAgent)(nil)
 
-func (m *mockLifecycleAgent) Name() agent.AgentName                  { return m.name }
-func (m *mockLifecycleAgent) Type() agent.AgentType                  { return m.agentType }
-func (m *mockLifecycleAgent) Description() string                    { return "Mock agent for lifecycle tests" }
-func (m *mockLifecycleAgent) DetectPresence() (bool, error)          { return false, nil }
-func (m *mockLifecycleAgent) GetHookConfigPath() string              { return "" }
-func (m *mockLifecycleAgent) SupportsHooks() bool                    { return true }
-func (m *mockLifecycleAgent) ProtectedDirs() []string                { return nil }
-func (m *mockLifecycleAgent) HookNames() []string                    { return nil }
-func (m *mockLifecycleAgent) GetSessionID(_ *agent.HookInput) string { return "" }
-
-//nolint:nilnil // Mock implementation
-func (m *mockLifecycleAgent) ParseHookInput(_ agent.HookType, _ io.Reader) (*agent.HookInput, error) {
-	return nil, nil
-}
-
-//nolint:nilnil // Mock implementation
-func (m *mockLifecycleAgent) ParseHookEvent(_ string, _ io.Reader) (*agent.Event, error) {
-	return nil, nil
-}
+func (m *mockLifecycleAgent) Name() types.AgentName                          { return m.name }
+func (m *mockLifecycleAgent) Type() types.AgentType                          { return m.agentType }
+func (m *mockLifecycleAgent) Description() string                            { return "Mock agent for lifecycle tests" }
+func (m *mockLifecycleAgent) IsPreview() bool                                { return false }
+func (m *mockLifecycleAgent) DetectPresence(_ context.Context) (bool, error) { return false, nil }
+func (m *mockLifecycleAgent) ProtectedDirs() []string                        { return nil }
+func (m *mockLifecycleAgent) GetSessionID(_ *agent.HookInput) string         { return "" }
 
 func (m *mockLifecycleAgent) ReadTranscript(_ string) ([]byte, error) {
 	if m.transcriptErr != nil {
@@ -53,7 +42,7 @@ func (m *mockLifecycleAgent) ReadTranscript(_ string) ([]byte, error) {
 	return m.transcriptData, nil
 }
 
-func (m *mockLifecycleAgent) ChunkTranscript(content []byte, _ int) ([][]byte, error) {
+func (m *mockLifecycleAgent) ChunkTranscript(_ context.Context, content []byte, _ int) ([][]byte, error) {
 	return [][]byte{content}, nil
 }
 
@@ -78,7 +67,7 @@ func (m *mockLifecycleAgent) ReadSession(_ *agent.HookInput) (*agent.AgentSessio
 	return nil, nil
 }
 
-func (m *mockLifecycleAgent) WriteSession(_ *agent.AgentSession) error {
+func (m *mockLifecycleAgent) WriteSession(_ context.Context, _ *agent.AgentSession) error {
 	return nil
 }
 
@@ -104,7 +93,7 @@ func TestDispatchLifecycleEvent_NilAgent(t *testing.T) {
 		SessionID: "test-session",
 	}
 
-	err := DispatchLifecycleEvent(nil, event)
+	err := DispatchLifecycleEvent(context.Background(), nil, event)
 	if err == nil {
 		t.Error("expected error for nil agent, got nil")
 	}
@@ -118,7 +107,7 @@ func TestDispatchLifecycleEvent_NilEvent(t *testing.T) {
 
 	ag := newMockAgent()
 
-	err := DispatchLifecycleEvent(ag, nil)
+	err := DispatchLifecycleEvent(context.Background(), ag, nil)
 	if err == nil {
 		t.Error("expected error for nil event, got nil")
 	}
@@ -136,7 +125,7 @@ func TestDispatchLifecycleEvent_UnknownEventType(t *testing.T) {
 		SessionID: "test-session",
 	}
 
-	err := DispatchLifecycleEvent(ag, event)
+	err := DispatchLifecycleEvent(context.Background(), ag, event)
 	if err == nil {
 		t.Error("expected error for unknown event type, got nil")
 	}
@@ -156,7 +145,7 @@ func TestHandleLifecycleSessionStart_EmptySessionID(t *testing.T) {
 		SessionID: "", // Empty
 	}
 
-	err := handleLifecycleSessionStart(ag, event)
+	err := handleLifecycleSessionStart(context.Background(), ag, event)
 	if err == nil {
 		t.Error("expected error for empty session ID, got nil")
 	}
@@ -176,7 +165,7 @@ func TestHandleLifecycleTurnStart_EmptySessionID(t *testing.T) {
 		SessionID: "", // Empty
 	}
 
-	err := handleLifecycleTurnStart(ag, event)
+	err := handleLifecycleTurnStart(context.Background(), ag, event)
 	if err == nil {
 		t.Error("expected error for empty session ID, got nil")
 	}
@@ -197,7 +186,7 @@ func TestHandleLifecycleTurnEnd_EmptyTranscriptRef(t *testing.T) {
 		SessionRef: "", // Empty transcript path
 	}
 
-	err := handleLifecycleTurnEnd(ag, event)
+	err := handleLifecycleTurnEnd(context.Background(), ag, event)
 	if err == nil {
 		t.Error("expected error for empty transcript ref, got nil")
 	}
@@ -216,7 +205,7 @@ func TestHandleLifecycleTurnEnd_NonexistentTranscript(t *testing.T) {
 		SessionRef: "/nonexistent/path/to/transcript.jsonl",
 	}
 
-	err := handleLifecycleTurnEnd(ag, event)
+	err := handleLifecycleTurnEnd(context.Background(), ag, event)
 	if err == nil {
 		t.Error("expected error for nonexistent transcript, got nil")
 	}
@@ -237,7 +226,7 @@ func TestHandleLifecycleTurnEnd_EmptyRepository(t *testing.T) {
 	if err := os.WriteFile(".git/HEAD", []byte("ref: refs/heads/main\n"), 0o644); err != nil {
 		t.Fatalf("Failed to create HEAD: %v", err)
 	}
-	paths.ClearRepoRootCache()
+	paths.ClearWorktreeRootCache()
 
 	// Create a transcript file
 	transcriptPath := filepath.Join(tmpDir, "transcript.jsonl")
@@ -252,7 +241,7 @@ func TestHandleLifecycleTurnEnd_EmptyRepository(t *testing.T) {
 		SessionRef: transcriptPath,
 	}
 
-	err := handleLifecycleTurnEnd(ag, event)
+	err := handleLifecycleTurnEnd(context.Background(), ag, event)
 
 	// Should return a SilentError wrapping ErrEmptyRepository
 	if err == nil {
@@ -270,14 +259,14 @@ func TestHandleLifecycleTurnEnd_EmptyRepository(t *testing.T) {
 
 // --- handleLifecycleCompaction tests ---
 
-func TestHandleLifecycleCompaction_ResetsTranscriptOffset(t *testing.T) {
+func TestHandleLifecycleCompaction_PreservesTranscriptOffset(t *testing.T) {
 	// Cannot use t.Parallel() because we use t.Chdir()
 	tmpDir := t.TempDir()
 	t.Chdir(tmpDir)
 
 	// Initialize git repo with a commit (not empty)
 	setupGitRepoWithCommit(t, tmpDir)
-	paths.ClearRepoRootCache()
+	paths.ClearWorktreeRootCache()
 
 	// Create .entire directory structure
 	if err := os.MkdirAll(paths.EntireDir, 0o755); err != nil {
@@ -293,12 +282,12 @@ func TestHandleLifecycleCompaction_ResetsTranscriptOffset(t *testing.T) {
 
 	sessionID := "compaction-test-session"
 
-	// Create session state with non-zero transcript offset
+	// Create session state with non-zero transcript offset (set by prior condensation)
 	sessionState := &strategy.SessionState{
 		SessionID:                 sessionID,
-		CheckpointTranscriptStart: 50, // Non-zero offset to be reset
+		CheckpointTranscriptStart: 50,
 	}
-	if err := strategy.SaveSessionState(sessionState); err != nil {
+	if err := strategy.SaveSessionState(context.Background(), sessionState); err != nil {
 		t.Fatalf("Failed to save session state: %v", err)
 	}
 
@@ -309,23 +298,24 @@ func TestHandleLifecycleCompaction_ResetsTranscriptOffset(t *testing.T) {
 		SessionRef: transcriptPath,
 	}
 
-	// handleLifecycleCompaction resets the transcript offset regardless of other operations.
-	// It fires EventCompaction which stays in ACTIVE phase and resets CheckpointTranscriptStart.
-	err := handleLifecycleCompaction(ag, event)
+	// Compaction should NOT reset the transcript offset.
+	// Many agents (e.g., Gemini) fire pre-compress as a no-op after every tool call;
+	// resetting the offset causes stale files to re-appear in carry-forward.
+	err := handleLifecycleCompaction(context.Background(), ag, event)
 	if err != nil {
 		t.Logf("handleLifecycleCompaction returned error (expected in minimal test): %v", err)
 	}
 
-	// Verify CheckpointTranscriptStart was reset to 0
-	loadedState, loadErr := strategy.LoadSessionState(sessionID)
+	// Verify CheckpointTranscriptStart was preserved (not reset to 0)
+	loadedState, loadErr := strategy.LoadSessionState(context.Background(), sessionID)
 	if loadErr != nil {
 		t.Fatalf("Failed to load session state after compaction: %v", loadErr)
 	}
 	if loadedState == nil {
 		t.Fatal("Session state is nil after compaction")
 	}
-	if loadedState.CheckpointTranscriptStart != 0 {
-		t.Errorf("CheckpointTranscriptStart = %d, want 0 (should be reset on compaction)",
+	if loadedState.CheckpointTranscriptStart != 50 {
+		t.Errorf("CheckpointTranscriptStart = %d, want 50 (compaction should preserve offset)",
 			loadedState.CheckpointTranscriptStart)
 	}
 }
@@ -342,7 +332,7 @@ func TestHandleLifecycleSessionEnd_EmptySessionID(t *testing.T) {
 	}
 
 	// Empty session ID should return nil (no error, just no-op)
-	err := handleLifecycleSessionEnd(ag, event)
+	err := handleLifecycleSessionEnd(context.Background(), ag, event)
 	if err != nil {
 		t.Errorf("expected no error for empty session ID on SessionEnd, got: %v", err)
 	}
@@ -357,7 +347,7 @@ func TestResolveTranscriptOffset_PrefersPrePromptState(t *testing.T) {
 		TranscriptOffset: 42,
 	}
 
-	offset := resolveTranscriptOffset(preState, "test-session")
+	offset := resolveTranscriptOffset(context.Background(), preState, "test-session")
 	if offset != 42 {
 		t.Errorf("expected offset 42 from pre-prompt state, got %d", offset)
 	}
@@ -367,7 +357,7 @@ func TestResolveTranscriptOffset_NilPrePromptState(t *testing.T) {
 	t.Parallel()
 
 	// With nil pre-prompt state and no session state, should return 0
-	offset := resolveTranscriptOffset(nil, "nonexistent-session")
+	offset := resolveTranscriptOffset(context.Background(), nil, "nonexistent-session")
 	if offset != 0 {
 		t.Errorf("expected offset 0 for nil pre-prompt state, got %d", offset)
 	}
@@ -381,7 +371,7 @@ func TestResolveTranscriptOffset_ZeroOffsetInPrePromptState(t *testing.T) {
 	}
 
 	// With zero in pre-prompt state and no session state, should return 0
-	offset := resolveTranscriptOffset(preState, "nonexistent-session")
+	offset := resolveTranscriptOffset(context.Background(), preState, "nonexistent-session")
 	if offset != 0 {
 		t.Errorf("expected offset 0, got %d", offset)
 	}
@@ -547,7 +537,7 @@ func TestDispatchLifecycleEvent_RoutesToCorrectHandler(t *testing.T) {
 				Timestamp: time.Now(),
 			}
 
-			err := DispatchLifecycleEvent(ag, event)
+			err := DispatchLifecycleEvent(context.Background(), ag, event)
 
 			if tc.expectError {
 				if err == nil {
@@ -587,7 +577,7 @@ func setupGitRepoWithCommit(t *testing.T, dir string) {
 	}
 
 	// Use go-git to create an initial commit
-	repo, err := strategy.OpenRepository()
+	repo, err := strategy.OpenRepository(context.Background())
 	if err != nil {
 		// If we can't open with go-git, the empty repo check will work differently
 		t.Logf("Note: Could not open repository with go-git: %v", err)

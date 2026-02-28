@@ -4,7 +4,6 @@
 package cli
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -13,8 +12,10 @@ import (
 	"github.com/entireio/cli/cmd/entire/cli/agent"
 	"github.com/entireio/cli/cmd/entire/cli/agent/claudecode"
 	"github.com/entireio/cli/cmd/entire/cli/agent/geminicli"
+	"github.com/entireio/cli/cmd/entire/cli/agent/types"
 	"github.com/entireio/cli/cmd/entire/cli/logging"
 	"github.com/entireio/cli/cmd/entire/cli/paths"
+	"github.com/entireio/cli/cmd/entire/cli/strategy"
 
 	"github.com/spf13/cobra"
 )
@@ -26,7 +27,7 @@ var agentHookLogCleanup func()
 // currentHookAgentName stores the agent name for the currently executing hook.
 // Set by newAgentHookVerbCmdWithLogging before calling the handler.
 // This allows handlers to know which agent invoked the hook without guessing.
-var currentHookAgentName agent.AgentName
+var currentHookAgentName types.AgentName
 
 // GetCurrentHookAgent returns the agent for the currently executing hook.
 // Returns the agent based on the hook command structure (e.g., "entire hooks claude-code ...")
@@ -44,15 +45,15 @@ func GetCurrentHookAgent() (agent.Agent, error) {
 	return ag, nil
 }
 
-// newAgentHooksCmd creates a hooks subcommand for an agent that implements HookHandler.
+// newAgentHooksCmd creates a hooks subcommand for an agent that implements HookSupport.
 // It dynamically creates subcommands for each hook the agent supports.
-func newAgentHooksCmd(agentName agent.AgentName, handler agent.HookHandler) *cobra.Command {
+func newAgentHooksCmd(agentName types.AgentName, handler agent.HookSupport) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:    string(agentName),
 		Short:  handler.Description() + " hook handlers",
 		Hidden: true,
-		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			agentHookLogCleanup = initHookLogging()
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			agentHookLogCleanup = initHookLogging(cmd.Context())
 			return nil
 		},
 		PersistentPostRunE: func(_ *cobra.Command, _ []string) error {
@@ -63,7 +64,7 @@ func newAgentHooksCmd(agentName agent.AgentName, handler agent.HookHandler) *cob
 		},
 	}
 
-	for _, hookName := range handler.GetHookNames() {
+	for _, hookName := range handler.HookNames() {
 		cmd.AddCommand(newAgentHookVerbCmdWithLogging(agentName, hookName))
 	}
 
@@ -88,19 +89,19 @@ func getHookType(hookName string) string {
 // newAgentHookVerbCmdWithLogging creates a command for a specific hook verb with structured logging.
 // It uses the lifecycle dispatcher (ParseHookEvent → DispatchLifecycleEvent) as the primary path.
 // PostTodo is handled directly as it's Claude-specific and not part of the lifecycle dispatcher.
-func newAgentHookVerbCmdWithLogging(agentName agent.AgentName, hookName string) *cobra.Command {
+func newAgentHookVerbCmdWithLogging(agentName types.AgentName, hookName string) *cobra.Command {
 	return &cobra.Command{
 		Use:    hookName,
 		Hidden: true,
 		Short:  "Called on " + hookName,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			// Skip silently if not in a git repository - hooks shouldn't prevent the agent from working
-			if _, err := paths.RepoRoot(); err != nil {
+			if _, err := paths.WorktreeRoot(cmd.Context()); err != nil {
 				return nil
 			}
 
 			// Skip if Entire is not enabled
-			enabled, err := IsEnabled()
+			enabled, err := IsEnabled(cmd.Context())
 			if err == nil && !enabled {
 				return nil
 			}
@@ -108,10 +109,10 @@ func newAgentHookVerbCmdWithLogging(agentName agent.AgentName, hookName string) 
 			start := time.Now()
 
 			// Initialize logging context with agent name
-			ctx := logging.WithAgent(logging.WithComponent(context.Background(), "hooks"), agentName)
+			ctx := logging.WithAgent(logging.WithComponent(cmd.Context(), "hooks"), agentName)
 
-			// Get strategy name for logging
-			strategyName := GetStrategy().Name()
+			// Strategy name for logging
+			strategyName := strategy.StrategyNameManualCommit
 
 			hookType := getHookType(hookName)
 
@@ -132,18 +133,23 @@ func newAgentHookVerbCmdWithLogging(agentName agent.AgentName, hookName string) 
 				return fmt.Errorf("failed to get agent %q: %w", agentName, agentErr)
 			}
 
+			handler, ok := ag.(agent.HookSupport)
+			if !ok {
+				return fmt.Errorf("agent %q does not support hooks", agentName)
+			}
+
 			// Use cmd.InOrStdin() to support testing with cmd.SetIn()
-			event, parseErr := ag.ParseHookEvent(hookName, cmd.InOrStdin())
+			event, parseErr := handler.ParseHookEvent(ctx, hookName, cmd.InOrStdin())
 			if parseErr != nil {
 				return fmt.Errorf("failed to parse hook event: %w", parseErr)
 			}
 
 			if event != nil {
 				// Lifecycle event — use the generic dispatcher
-				hookErr = DispatchLifecycleEvent(ag, event)
+				hookErr = DispatchLifecycleEvent(ctx, ag, event)
 			} else if agentName == agent.AgentNameClaudeCode && hookName == claudecode.HookNamePostTodo {
 				// PostTodo is Claude-specific: creates incremental checkpoints during subagent execution
-				hookErr = handleClaudeCodePostTodo()
+				hookErr = handleClaudeCodePostTodo(ctx)
 			}
 			// Other pass-through hooks (nil event, no special handling) are no-ops
 

@@ -1,10 +1,13 @@
 package agent
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/entireio/cli/cmd/entire/cli/agent/types"
 )
 
 const (
@@ -18,7 +21,7 @@ const (
 
 // ChunkTranscript splits a transcript into chunks using the appropriate agent.
 // If agentType is empty or the agent is not found, falls back to JSONL (line-based) chunking.
-func ChunkTranscript(content []byte, agentType AgentType) ([][]byte, error) {
+func ChunkTranscript(ctx context.Context, content []byte, agentType types.AgentType) ([][]byte, error) {
 	if len(content) <= MaxChunkSize {
 		return [][]byte{content}, nil
 	}
@@ -27,7 +30,7 @@ func ChunkTranscript(content []byte, agentType AgentType) ([][]byte, error) {
 	if agentType != "" {
 		ag, err := GetByAgentType(agentType)
 		if err == nil {
-			chunks, chunkErr := ag.ChunkTranscript(content, MaxChunkSize)
+			chunks, chunkErr := ag.ChunkTranscript(ctx, content, MaxChunkSize)
 			if chunkErr != nil {
 				return nil, fmt.Errorf("agent chunking failed: %w", chunkErr)
 			}
@@ -41,7 +44,7 @@ func ChunkTranscript(content []byte, agentType AgentType) ([][]byte, error) {
 
 // ReassembleTranscript combines chunks back into a single transcript.
 // If agentType is empty or the agent is not found, falls back to JSONL (line-based) reassembly.
-func ReassembleTranscript(chunks [][]byte, agentType AgentType) ([]byte, error) {
+func ReassembleTranscript(chunks [][]byte, agentType types.AgentType) ([]byte, error) {
 	if len(chunks) == 0 {
 		return nil, nil
 	}
@@ -165,7 +168,7 @@ type geminiTranscriptDetect struct {
 // DetectAgentTypeFromContent detects the agent type from transcript content.
 // Returns AgentTypeGemini if it appears to be Gemini JSON format, empty AgentType otherwise.
 // This is used when the agent type is unknown but we need to chunk/reassemble correctly.
-func DetectAgentTypeFromContent(content []byte) AgentType {
+func DetectAgentTypeFromContent(content []byte) types.AgentType {
 	// Quick check: Gemini JSON starts with { and has a messages array
 	trimmed := strings.TrimSpace(string(content))
 	if !strings.HasPrefix(trimmed, "{") {

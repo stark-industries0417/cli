@@ -4,51 +4,43 @@
 package agent
 
 import (
+	"context"
 	"io"
+
+	"github.com/entireio/cli/cmd/entire/cli/agent/types"
 )
 
 // Agent defines the interface for interacting with a coding agent.
 // Each agent implementation (Claude Code, Cursor, Aider, etc.) converts its
 // native format to the normalized types defined in this package.
 //
-// The interface is organized into four groups:
-//
+// The interface is organized into three groups:
 //   - Identity (5 methods): Name, Type, Description, DetectPresence, ProtectedDirs
-//   - Event Mapping (2 methods): HookNames, ParseHookEvent
 //   - Transcript Storage (3 methods): ReadTranscript, ChunkTranscript, ReassembleTranscript
-//   - Legacy (8 methods): Will be moved to optional interfaces or removed in a future phase
+//   - Legacy (6 methods): Will be moved to optional interfaces or removed in a future phase
 type Agent interface {
 	// --- Identity ---
 
 	// Name returns the agent registry key (e.g., "claude-code", "gemini")
-	Name() AgentName
+	Name() types.AgentName
 
 	// Type returns the agent type identifier (e.g., "Claude Code", "Gemini CLI")
 	// This is stored in metadata and trailers.
-	Type() AgentType
+	Type() types.AgentType
 
 	// Description returns a human-readable description for UI
 	Description() string
 
+	// IsPreview returns whether the agent integration is in preview or stable
+	IsPreview() bool
+
 	// DetectPresence checks if this agent is configured in the repository
-	DetectPresence() (bool, error)
+	DetectPresence(ctx context.Context) (bool, error)
 
 	// ProtectedDirs returns repo-root-relative directories that should never be
 	// modified or deleted during rewind or other destructive operations.
 	// Examples: [".claude"] for Claude, [".gemini"] for Gemini.
 	ProtectedDirs() []string
-
-	// --- Event Mapping ---
-
-	// HookNames returns the hook verbs this agent supports.
-	// These become subcommands under `entire hooks <agent>`.
-	// e.g., ["stop", "user-prompt-submit", "session-start", "session-end"]
-	HookNames() []string
-
-	// ParseHookEvent translates an agent-native hook into a normalized lifecycle Event.
-	// Returns nil if the hook has no lifecycle significance (e.g., pass-through hooks).
-	// This is the core contribution surface for new agent implementations.
-	ParseHookEvent(hookName string, stdin io.Reader) (*Event, error)
 
 	// --- Transcript Storage ---
 
@@ -58,22 +50,13 @@ type Agent interface {
 	// ChunkTranscript splits a transcript into chunks if it exceeds maxSize.
 	// Returns a slice of chunks. If the transcript fits in one chunk, returns single-element slice.
 	// The chunking is format-aware: JSONL splits at line boundaries, JSON splits message arrays.
-	ChunkTranscript(content []byte, maxSize int) ([][]byte, error)
+	ChunkTranscript(ctx context.Context, content []byte, maxSize int) ([][]byte, error)
 
 	// ReassembleTranscript combines chunks back into a single transcript.
 	// Handles format-specific reassembly (JSONL concatenation, JSON message merging).
 	ReassembleTranscript(chunks [][]byte) ([]byte, error)
 
 	// --- Legacy methods (will move to optional interfaces in Phase 4) ---
-
-	// GetHookConfigPath returns path to hook config file (empty if none).
-	GetHookConfigPath() string
-
-	// SupportsHooks returns true if agent supports lifecycle hooks.
-	SupportsHooks() bool
-
-	// ParseHookInput parses hook callback input from stdin.
-	ParseHookInput(hookType HookType, reader io.Reader) (*HookInput, error)
 
 	// GetSessionID extracts session ID from hook input.
 	GetSessionID(input *HookInput) string
@@ -88,7 +71,7 @@ type Agent interface {
 	ReadSession(input *HookInput) (*AgentSession, error)
 
 	// WriteSession writes session data for resumption.
-	WriteSession(session *AgentSession) error
+	WriteSession(ctx context.Context, session *AgentSession) error
 
 	// FormatResumeCommand returns command to resume a session.
 	FormatResumeCommand(sessionID string) string
@@ -97,33 +80,34 @@ type Agent interface {
 // HookSupport is implemented by agents with lifecycle hooks.
 // This optional interface allows agents like Claude Code and Cursor to
 // install and manage hooks that notify Entire of agent events.
+//
+// The interface is organized into two groups:
+//   - Hook Mapping (2 methods): HookNames, ParseHookEvent
+//   - Hook Management (3 methods): InstallHooks, UninstallHooks, AreHooksInstalled
 type HookSupport interface {
 	Agent
+
+	// HookNames returns the hook verbs this agent supports.
+	// These become subcommands under `entire hooks <agent>`.
+	// e.g., ["stop", "user-prompt-submit", "session-start", "session-end"]
+	HookNames() []string
+
+	// ParseHookEvent translates an agent-native hook into a normalized lifecycle Event.
+	// Returns nil if the hook has no lifecycle significance (e.g., pass-through hooks).
+	// This is the core contribution surface for new agent implementations.
+	ParseHookEvent(ctx context.Context, hookName string, stdin io.Reader) (*Event, error)
 
 	// InstallHooks installs agent-specific hooks.
 	// If localDev is true, hooks point to local development build.
 	// If force is true, removes existing Entire hooks before installing.
 	// Returns the number of hooks installed.
-	InstallHooks(localDev bool, force bool) (int, error)
+	InstallHooks(ctx context.Context, localDev bool, force bool) (int, error)
 
 	// UninstallHooks removes installed hooks
-	UninstallHooks() error
+	UninstallHooks(ctx context.Context) error
 
 	// AreHooksInstalled checks if hooks are currently installed
-	AreHooksInstalled() bool
-
-	// GetSupportedHooks returns the hook types this agent supports
-	GetSupportedHooks() []HookType
-}
-
-// HookHandler is implemented by agents that define their own hook vocabulary.
-// HookNames() is now part of the core Agent interface.
-// This interface is kept for backward compatibility during migration.
-type HookHandler interface {
-	Agent
-
-	// GetHookNames returns the hook verbs this agent supports.
-	GetHookNames() []string
+	AreHooksInstalled(ctx context.Context) bool
 }
 
 // FileWatcher is implemented by agents that use file-based detection.
@@ -176,7 +160,7 @@ type TranscriptPreparer interface {
 
 	// PrepareTranscript ensures the transcript is ready to read.
 	// For Claude Code, this waits for the async transcript flush to complete.
-	PrepareTranscript(sessionRef string) error
+	PrepareTranscript(ctx context.Context, sessionRef string) error
 }
 
 // TokenCalculator provides token usage calculation for a session.
@@ -185,7 +169,7 @@ type TokenCalculator interface {
 	Agent
 
 	// CalculateTokenUsage computes token usage from the transcript starting at the given offset.
-	CalculateTokenUsage(sessionRef string, fromOffset int) (*TokenUsage, error)
+	CalculateTokenUsage(transcriptData []byte, fromOffset int) (*TokenUsage, error)
 }
 
 // SubagentAwareExtractor provides methods for extracting files and tokens including subagents.
@@ -197,9 +181,9 @@ type SubagentAwareExtractor interface {
 	// ExtractAllModifiedFiles extracts files modified by both the main agent and any spawned subagents.
 	// The subagentsDir parameter specifies where subagent transcripts are stored.
 	// Returns a deduplicated list of all modified file paths.
-	ExtractAllModifiedFiles(sessionRef string, fromOffset int, subagentsDir string) ([]string, error)
+	ExtractAllModifiedFiles(transcriptData []byte, fromOffset int, subagentsDir string) ([]string, error)
 
 	// CalculateTotalTokenUsage computes token usage including all spawned subagents.
 	// The subagentsDir parameter specifies where subagent transcripts are stored.
-	CalculateTotalTokenUsage(sessionRef string, fromOffset int, subagentsDir string) (*TokenUsage, error)
+	CalculateTotalTokenUsage(transcriptData []byte, fromOffset int, subagentsDir string) (*TokenUsage, error)
 }

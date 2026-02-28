@@ -1,6 +1,8 @@
 package geminicli
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -16,14 +18,26 @@ var (
 )
 
 // HookNames returns the hook verbs Gemini CLI supports.
-// Delegates to GetHookNames for backward compatibility.
+// These become subcommands: entire hooks gemini <verb>
 func (g *GeminiCLIAgent) HookNames() []string {
-	return g.GetHookNames()
+	return []string{
+		HookNameSessionStart,
+		HookNameSessionEnd,
+		HookNameBeforeAgent,
+		HookNameAfterAgent,
+		HookNameBeforeModel,
+		HookNameAfterModel,
+		HookNameBeforeToolSelection,
+		HookNameBeforeTool,
+		HookNameAfterTool,
+		HookNamePreCompress,
+		HookNameNotification,
+	}
 }
 
 // ParseHookEvent translates a Gemini CLI hook into a normalized lifecycle Event.
 // Returns nil if the hook has no lifecycle significance (e.g., pass-through hooks).
-func (g *GeminiCLIAgent) ParseHookEvent(hookName string, stdin io.Reader) (*agent.Event, error) {
+func (g *GeminiCLIAgent) ParseHookEvent(_ context.Context, hookName string, stdin io.Reader) (*agent.Event, error) {
 	switch hookName {
 	case HookNameSessionStart:
 		return g.parseSessionStart(stdin)
@@ -85,8 +99,39 @@ func (g *GeminiCLIAgent) ExtractSummary(sessionRef string) (string, error) {
 }
 
 // CalculateTokenUsage computes token usage from the transcript starting at the given message offset.
-func (g *GeminiCLIAgent) CalculateTokenUsage(sessionRef string, fromOffset int) (*agent.TokenUsage, error) {
-	return CalculateTokenUsageFromFile(sessionRef, fromOffset)
+func (g *GeminiCLIAgent) CalculateTokenUsage(transcriptData []byte, fromOffset int) (*agent.TokenUsage, error) {
+	var transcript struct {
+		Messages []geminiMessageWithTokens `json:"messages"`
+	}
+
+	if err := json.Unmarshal(transcriptData, &transcript); err != nil {
+		return &agent.TokenUsage{}, fmt.Errorf("failed to parse transcript for token usage: %w", err)
+	}
+
+	usage := &agent.TokenUsage{}
+
+	for i, msg := range transcript.Messages {
+		// Skip messages before startMessageIndex
+		if i < fromOffset {
+			continue
+		}
+
+		// Only count tokens from gemini (assistant) messages
+		if msg.Type != MessageTypeGemini {
+			continue
+		}
+
+		if msg.Tokens == nil {
+			continue
+		}
+
+		usage.APICallCount++
+		usage.InputTokens += msg.Tokens.Input
+		usage.OutputTokens += msg.Tokens.Output
+		usage.CacheReadTokens += msg.Tokens.Cached
+	}
+
+	return usage, nil
 }
 
 // --- Internal hook parsing functions ---
